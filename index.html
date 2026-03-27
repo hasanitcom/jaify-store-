@@ -1,1 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Katalog Produk JAIFY</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{--primary:#0f172a;--secondary:#f97316;--bg:#f1f5f9;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:var(--bg);}
+
+/* HEADER */
+header{background:#fff;padding:12px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.08);}
+.logo img{height:45px;}
+
+/* HERO */
+.hero{
+background:linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),
+url('https://res.cloudinary.com/dmawwoupq/image/upload/v1774363111/uey3nzizi65lbgjv8gxm.jpg');
+height:280px;
+display:flex;align-items:center;justify-content:center;color:#fff;
+}
+
+/* GRID */
+.container{padding:25px;}
+#productGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;}
+
+/* CARD */
+.product-card{
+background:#fff;border-radius:18px;overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+/* SLIDER */
+.media-box{position:relative;height:220px;overflow:hidden;}
+.media-track{display:flex;height:100%;transition:0.4s;}
+.slide{min-width:100%;}
+.slide img{width:100%;height:100%;object-fit:cover;cursor:pointer;}
+
+/* NAV */
+.nav{position:absolute;top:50%;transform:translateY(-50%);
+background:rgba(0,0,0,0.4);color:#fff;border:none;padding:8px;border-radius:50%;}
+.prev{left:8px;} .next{right:8px;}
+
+/* DOT */
+.dots{position:absolute;bottom:8px;width:100%;text-align:center;}
+.dot{width:8px;height:8px;background:#ddd;display:inline-block;margin:2px;border-radius:50%;}
+.dot.active{background:var(--secondary);}
+
+/* INFO */
+.info-p{padding:15px;text-align:center;}
+.btn-detail{background:var(--primary);color:#fff;padding:10px;border:none;border-radius:10px;width:100%;cursor:pointer;}
+
+/* MODAL */
+.modal,.order-modal,.zoom-modal{
+display:none;position:fixed;width:100%;height:100%;
+background:rgba(0,0,0,0.75);justify-content:center;align-items:center;
+}
+.modal-content,.order-content{
+background:#fff;padding:20px;border-radius:15px;width:90%;max-width:400px;
+}
+.price-tag{color:#f97316;font-weight:bold;}
+
+.btn-wa,.btn-order{
+display:block;margin-top:10px;padding:10px;border-radius:8px;text-align:center;color:#fff;
+}
+.btn-wa{background:#25d366;} .btn-order{background:#f97316;}
+
+.order-content input,.order-content textarea{
+width:100%;padding:8px;margin-top:10px;border-radius:8px;border:1px solid #ccc;
+}
+
+/* ZOOM */
+.zoom-modal img{max-width:90%;max-height:90%;}
+
+/* FOOTER */
+footer{background:#0f172a;color:#fff;padding:30px;text-align:center;}
+.sales{display:flex;justify-content:center;align-items:center;gap:15px;margin-bottom:15px;}
+.sales img{width:60px;height:60px;border-radius:50%;border:2px solid #f97316;}
+.alamat{font-size:0.85rem;color:#ccc;}
+.copy{margin-top:10px;font-size:0.7rem;color:#aaa;}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">
+<img src="https://res.cloudinary.com/dmawwoupq/image/upload/v1774363634/kjguapqouo1vrtoqr4nh.png">
+</div>
+</header>
+
+<section class="hero">
+<h1>KATALOG PRODUK JAIFY</h1>
+</section>
+
+<div class="container">
+<div id="productGrid"></div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div id="detailModal" class="modal">
+<div class="modal-content">
+<span onclick="closeModal()" style="float:right;cursor:pointer;">✕</span>
+<h2 id="modalTitle"></h2>
+<p class="price-tag" id="modalPrice"></p>
+<p id="modalDesc"></p>
+<p id="modalMateri" style="color:#f97316;font-weight:600;margin-top:10px;"></p>
+
+<a id="modalWA" class="btn-wa">Chat WhatsApp</a>
+<button class="btn-order" onclick="openOrderForm()">Order</button>
+</div>
+</div>
+
+<!-- ORDER -->
+<div id="orderModal" class="order-modal">
+<div class="order-content">
+<h3>Form Order</h3>
+<input id="nama" placeholder="Nama">
+<input id="jumlah" type="number" placeholder="Jumlah">
+<textarea id="alamat" placeholder="Alamat lengkap"></textarea>
+<button class="btn-wa" onclick="kirimOrder()">Kirim</button>
+</div>
+</div>
+
+<!-- ZOOM -->
+<div id="zoomModal" class="zoom-modal" onclick="this.style.display='none'">
+<img id="zoomImg">
+</div>
+
+<!-- FOOTER -->
+<footer>
+<div class="sales">
+<img src="https://res.cloudinary.com/dmawwoupq/image/upload/v1774363634/kjguapqouo1vrtoqr4nh.png">
+<div>
+<h3>Sales JAIFY</h3>
+<p>Admin Online</p>
+</div>
+</div>
+
+<div class="alamat">
+Jl. Raya Bekasi No.123<br>
+Bekasi, Jawa Barat<br>
+Indonesia
+</div>
+
+<p class="copy">© 2026 JAIFY STORE</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+<script>
+let data=[],sliderIndex={},selectedProduct='';
+
+function loadCSV(){
+Papa.parse('produk.csv',{
+download:true,
+header:true,
+complete:(res)=>{
+data=res.data.filter(d=>d.NAMA);
+render();initSlider();
+}});
+}
+
+function formatUrl(url){
+if(!url) return 'https://via.placeholder.com/400';
+if(!url.startsWith('http')) return 'img/'+url;
+return url;
+}
+
+function render(){
+const grid=document.getElementById('productGrid');
+
+grid.innerHTML=data.map((p,i)=>{
+
+let fotos=Object.keys(p).filter(k=>k.includes('FOTO') && p[k]);
+
+return `
+<div class="product-card">
+
+<div class="media-box">
+<div class="media-track" id="track-${i}">
+${fotos.map(f=>`
+<div class="slide">
+<img src="${formatUrl(p[f])}" onclick="zoom('${formatUrl(p[f])}')">
+</div>`).join('')}
+</div>
+
+<button class="nav prev" onclick="prev(${i})">&#10094;</button>
+<button class="nav next" onclick="next(${i})">&#10095;</button>
+
+<div class="dots">
+${fotos.map((_,d)=>`
+<span class="dot" onclick="go(${i},${d})"></span>`).join('')}
+</div>
+</div>
+
+<div class="info-p">
+<h3>${p.NAMA}</h3>
+<button class="btn-detail" onclick="detail(${i})">Detail</button>
+</div>
+
+</div>
+`;
+}).join('');
+}
+
+function initSlider(){
+document.querySelectorAll('.media-track').forEach((t,i)=>{
+sliderIndex[i]=0;update(i);
+
+let start=0;
+t.addEventListener('touchstart',e=>start=e.touches[0].clientX);
+t.addEventListener('touchend',e=>{
+let end=e.changedTouches[0].clientX;
+if(start-end>50) next(i);
+if(end-start>50) prev(i);
+});
+});
+}
+
+function update(i){
+let track=document.getElementById('track-'+i);
+track.style.transform=`translateX(-${sliderIndex[i]*100}%)`;
+
+let dots=track.parentElement.querySelectorAll('.dot');
+dots.forEach((d,x)=>d.classList.toggle('active',x===sliderIndex[i]));
+}
+
+function next(i){
+let total=document.getElementById('track-'+i).children.length;
+sliderIndex[i]=(sliderIndex[i]+1)%total;
+update(i);
+}
+
+function prev(i){
+let total=document.getElementById('track-'+i).children.length;
+sliderIndex[i]=(sliderIndex[i]-1+total)%total;
+update(i);
+}
+
+function go(i,x){sliderIndex[i]=x;update(i);}
+
+function detail(i){
+let p=data[i];selectedProduct=p.NAMA;
+
+modalTitle.innerText=p.NAMA;
+modalPrice.innerText='Rp '+p.HARGA;
+modalDesc.innerText=p.DESKRIPSI;
+modalMateri.innerText=p.MATERI || '';
+
+modalWA.href=`https://wa.me/6282211494040?text=Halo saya tertarik ${p.NAMA}`;
+
+detailModal.style.display='flex';
+}
+
+function closeModal(){detailModal.style.display='none';}
+function openOrderForm(){orderModal.style.display='flex';}
+
+function kirimOrder(){
+let nama=nama.value,jumlah=jumlah.value,alamat=alamat.value;
+
+if(!nama||!jumlah||!alamat){
+alert("Lengkapi data dulu!");
+return;
+}
+
+let pesan=`🛒 ORDER JAIFY%0AProduk:${selectedProduct}%0ANama:${nama}%0AJumlah:${jumlah}%0AAlamat:${alamat}`;
+
+window.open(`https://wa.me/6282211494040?text=${pesan}`);
+}
+
+function zoom(src){
+zoomImg.src=src;
+zoomModal.style.display='flex';
+}
+
+window.onload=loadCSV;
+</script>
+
+</body>
+</html>
